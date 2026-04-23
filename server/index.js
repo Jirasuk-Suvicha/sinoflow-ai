@@ -38,11 +38,15 @@ app.post('/api/chat', async (req, res) => {
       systemInstruction: systemInstruction 
     });
 
-    const chat = model.startChat({
-      history: messages.slice(0, -1).map(m => ({
+    const chatHistory = messages.slice(0, -1)
+      .filter((m, i) => !(i === 0 && m.role === 'ai')) // Remove initial AI greeting from history for Gemini
+      .map(m => ({
         role: m.role === 'user' ? 'user' : 'model',
         parts: [{ text: m.content }],
-      })),
+      }));
+
+    const chat = model.startChat({
+      history: chatHistory,
     });
 
     const result = await chat.sendMessage(messages[messages.length - 1].content);
